@@ -182,6 +182,7 @@ As versões são publicadas pelo workflow `.github/workflows/publish.yml`, acion
 | --- | --- | --- |
 | Python | [`aut2fa`](https://pypi.org/project/aut2fa/) | [aut2fa-python](https://github.com/jhowbhz/aut2fa-python) |
 | Node.js | [`@aut2fa/node`](https://www.npmjs.com/package/@aut2fa/node) | [aut2fa-node](https://github.com/jhowbhz/aut2fa-node) |
+| Go | [`github.com/jhowbhz/aut2fa-go`](https://pkg.go.dev/github.com/jhowbhz/aut2fa-go) | [aut2fa-go](https://github.com/jhowbhz/aut2fa-go) |
 
 ## Contribuir
 
