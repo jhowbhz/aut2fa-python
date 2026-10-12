@@ -1,18 +1,66 @@
-# aut2fa para Python
+<p align="center">
+  <a href="https://aut2fa.com">
+    <img src="https://raw.githubusercontent.com/jhowbhz/aut2fa-python/main/.github/assets/banner.png" alt="aut2fa para Python: você envia o código, a gente entrega por WhatsApp, SMS, Telegram e e-mail" width="100%">
+  </a>
+</p>
 
-Envie, consulte e verifique códigos 2FA pela [API aut2fa](https://doc.aut2fa.com). O SDK usa Python 3.10 ou superior, tem licença MIT e não exige dependências de runtime.
+<p align="center">
+  <a href="https://pypi.org/project/aut2fa/"><img src="https://img.shields.io/pypi/v/aut2fa?color=00cfc5&label=PyPI" alt="Versão no PyPI"></a>
+  <a href="https://pypi.org/project/aut2fa/"><img src="https://img.shields.io/pypi/pyversions/aut2fa?color=3776ab&logo=python&logoColor=white" alt="Versões do Python"></a>
+  <a href="https://pepy.tech/project/aut2fa"><img src="https://img.shields.io/pepy/dt/aut2fa?color=00cfc5&label=downloads" alt="Downloads"></a>
+  <a href="https://github.com/jhowbhz/aut2fa-python/actions/workflows/ci.yml"><img src="https://github.com/jhowbhz/aut2fa-python/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <img src="https://img.shields.io/badge/dependências-0-00cfc5" alt="Zero dependências">
+  <img src="https://img.shields.io/badge/typing-py.typed-3776ab" alt="Tipado com py.typed">
+  <a href="LICENSE"><img src="https://img.shields.io/pypi/l/aut2fa?color=00cfc5" alt="Licença MIT"></a>
+</p>
 
-## Instalar pelo GitHub
+<p align="center">
+  <b>Envie códigos 2FA por WhatsApp, SMS, Telegram e e-mail com uma chamada de API.</b><br>
+  <a href="https://aut2fa.com">Site</a> ·
+  <a href="https://doc.aut2fa.com">Documentação</a> ·
+  <a href="https://aut2fa.com">Criar conta grátis</a> ·
+  <a href="https://github.com/jhowbhz/aut2fa-python/issues">Reportar problema</a>
+</p>
 
-O código está no [repositório aut2fa-python](https://github.com/jhowbhz/aut2fa-python). A distribuição `aut2fa` ainda aguarda a primeira publicação no PyPI; a conta e o Trusted Publisher precisam ser configurados.
+---
 
-Com Git instalado, instale o código do repositório:
+## Por que usar
+
+- **Um endpoint, quatro canais.** Você chama `send`, e a aut2fa entrega por WhatsApp, SMS, Telegram ou e-mail.
+- **Sem gerar nem guardar código.** A API pode gerar o código; você só chama `verify` com o que o usuário digitou.
+- **Zero dependências.** Só biblioteca padrão do Python 3.10+. Nada de `requests` no seu ambiente.
+- **Tipado.** Inclui `py.typed`, com respostas como objetos e autocompletar no editor.
+- **Seguro por padrão.** Bloqueia redirecionamentos, não repete requisições sozinho e valida as entradas antes de chamar a API.
+- **Erros claros.** `ApiError`, `NetworkError`, `RequestTimeoutError` e `InvalidResponseError` separam cada tipo de falha.
+
+## Instalar
 
 ```bash
-python -m pip install "git+https://github.com/jhowbhz/aut2fa-python.git"
+pip install aut2fa
 ```
 
-Para instalar um checkout local, execute `python -m pip install .` na raiz. O nome de importação também é `aut2fa`.
+Também funciona com `uv add aut2fa` e `poetry add aut2fa`.
+
+## Começar em 30 segundos
+
+```python
+import os
+
+from aut2fa import Aut2fa
+
+client = Aut2fa(os.environ["AUT2FA_API_KEY"])
+
+# 1. Envia o código para o usuário
+send = client.send(to="+5511999999999")
+
+# 2. Confere o código que o usuário digitou
+result = client.verify(send.id, code="123456")
+
+if result.valid:
+    print("Login liberado")
+```
+
+Crie sua conta em [aut2fa.com](https://aut2fa.com) para pegar a chave da aplicação.
 
 ## Enviar e verificar um código
 
@@ -124,22 +172,25 @@ python -m twine check --strict dist/*
 
 A integração contínua executa testes em Python 3.10 a 3.14 no Linux e em Python 3.14 no Windows. Ela constrói wheel e sdist, valida os metadados e testa o wheel instalado fora do checkout.
 
-## Preparar a publicação no PyPI
+## Publicar novas versões
 
-O workflow `.github/workflows/publish.yml` publica somente por acionamento manual com uma tag Git existente, como `v0.1.0`. Criar uma tag não publica o pacote. O workflow confere a tag contra a versão de `pyproject.toml`, testa e constrói essa tag antes do upload.
+As versões são publicadas pelo workflow `.github/workflows/publish.yml`, acionado manualmente com uma tag existente, como `v0.1.1`. Ele confere a tag contra a versão do `pyproject.toml`, testa, constrói e envia ao PyPI com [Trusted Publishing](https://docs.pypi.org/trusted-publishers/) via OIDC, sem senha ou token salvo no repositório.
 
-Crie a conta PyPI e configure um [Trusted Publisher pendente](https://docs.pypi.org/trusted-publishers/creating-a-project-through-oidc/) com estes valores:
+## Outras linguagens
 
-| Campo | Valor |
-| --- | --- |
-| Nome do projeto PyPI | `aut2fa` |
-| Proprietário do repositório | `jhowbhz` |
-| Repositório | `aut2fa-python` |
-| Nome do arquivo do workflow | `publish.yml` |
-| Ambiente GitHub | `pypi` |
+| Linguagem | Pacote | Repositório |
+| --- | --- | --- |
+| Python | [`aut2fa`](https://pypi.org/project/aut2fa/) | [aut2fa-python](https://github.com/jhowbhz/aut2fa-python) |
+| Node.js | [`@aut2fa/node`](https://www.npmjs.com/package/@aut2fa/node) | [aut2fa-node](https://github.com/jhowbhz/aut2fa-node) |
 
-Crie também o ambiente `pypi` nas configurações do GitHub. O job de upload usa [Trusted Publishing com OpenID Connect (OIDC)](https://docs.pypi.org/trusted-publishers/using-a-publisher/), com `id-token: write`, sem senha ou token PyPI persistente. A publicação inicial continua pendente até configurar essas contas e executar o workflow.
+## Contribuir
 
-## Licença
+Encontrou um bug ou tem uma ideia? Abra uma [issue](https://github.com/jhowbhz/aut2fa-python/issues) ou envie um pull request. Consulte o [histórico de alterações](CHANGELOG.md) para acompanhar as versões.
 
-O SDK usa a [licença MIT](LICENSE). Consulte o [histórico de alterações](CHANGELOG.md) para acompanhar as versões.
+Se este SDK te ajudou, deixe uma ⭐ no repositório. Isso ajuda outros devs a encontrá-lo.
+
+---
+
+<p align="center">
+  <a href="https://doc.aut2fa.com">Documentação da API</a> · Licença <a href="LICENSE">MIT</a> · Feito pela <a href="https://aut2fa.com">aut2fa</a>
+</p>
