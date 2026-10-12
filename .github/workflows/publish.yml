@@ -1,0 +1,84 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag Git revisada no formato vX.Y.Z, por exemplo v0.1.0"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  distribution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate tag input
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Informe uma tag no formato vX.Y.Z."
+            exit 1
+          fi
+      - uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Match tag to distribution metadata
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          python - <<'PY'
+          import os
+          import pathlib
+          import tomllib
+
+          project = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]
+          if project["name"] != "aut2fa":
+              raise SystemExit("O nome da distribuição deve ser aut2fa.")
+          if os.environ["RELEASE_TAG"] != "v" + project["version"]:
+              raise SystemExit("A tag deve corresponder à versão de pyproject.toml.")
+          PY
+      - name: Install SDK and distribution tools
+        run: python -m pip install . build twine ruff
+      - name: Verify release source
+        run: |
+          python -m unittest discover -s tests -v
+          ruff check .
+          ruff format --check .
+      - name: Build source and wheel distributions
+        run: python -m build
+      - name: Validate package metadata
+        run: python -m twine check --strict dist/*
+      - name: Install built wheel
+        run: python -m pip install --force-reinstall --no-deps dist/*.whl
+      - name: Test installed wheel outside the checkout
+        working-directory: ${{ runner.temp }}
+        run: python -I -m unittest discover -s "${{ github.workspace }}/tests" -v
+      - uses: actions/upload-artifact@v7
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+
+  publish:
+    needs: distribution
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/aut2fa
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: python-distributions
+          path: dist
+      - name: Publish with a Trusted Publisher
+        uses: pypa/gh-action-pypi-publish@release/v1
